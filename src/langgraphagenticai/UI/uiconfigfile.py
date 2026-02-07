@@ -13,7 +13,7 @@ class Config:
         return ["Groq", "OpenAI", "Anthropic"]
 
     def get_usecase_options(self):
-        return ["Chatbot", "Stateful Graph", "Agentic Workflow"]
+        return ["Basic Chatbot", "Chatbot with web search"]
 
     def get_model_options(self):
         # Default/Fallback models

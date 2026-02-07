@@ -8,24 +8,35 @@ class DisplayResultsStreamlit:
         self.user_message = user_message
 
     def display_results_on_ui(self):
-        # 1. Display user message in chat history
-        st.chat_message("user").write(self.user_message)
-        
-        # 2. Show a spinner while waiting for the LLM
-        with st.spinner("Thinking..."):
-            try:
-                # 3. Create the initial state with the user's message
-                initial_state = {"messages": [HumanMessage(content=self.user_message)]}
-                
-                # 4. Run the graph!
-                response = self.graph.invoke(initial_state)
-                
-                # 5. Extract the last message (the AI's response)
-                ai_response = response['messages'][-1].content
-                
-                # 6. Display AI response
-                st.chat_message("assistant").write(ai_response)
+        usecase=self.usecase
+        graph=self.graph
+        user_message=self.user_message
+        print(user_message)
 
-            except Exception as e:
-                st.error(f"An error occurred: {str(e)}")
-                st.write(e) # This helps debugging
+        if usecase=="Basic Chatbot":
+           for event in graph.stream({'messages': [("user", user_message)]}):    
+                print(event.values())
+                for value in event.values():
+                    print(value['messages'])
+                    with st.chat_message("user"):
+                        st.write(user_message)
+                    with st.chat_message("assistant"):
+                        st.write(value['messages'][-1].content)
+        
+        elif usecase=="Chatbot with web search":
+           intial_state={"messages":[HumanMessage(content=user_message)]}
+           res=graph.invoke(intial_state)
+           for  messages in res['messages']:
+               if messages.type==HumanMessage:
+                   st.chat_message("user").write(messages.content)
+               elif messages.type==ToolMessage:
+                   with st.chat_message("ai"):
+                       st.write("Tool call start")
+                       st.write(messages.content)
+                       st.write("Tool call end")
+               elif messages.type==AIMessage and message.content:
+                    with st.chat_message("assistant"):
+                        st.write(messages.content)
+
+                
+        
